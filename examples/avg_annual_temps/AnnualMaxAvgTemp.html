@@ -84,8 +84,7 @@
 			
 			dataset.forEach(function(d) {
               d[0] = parseDate(d[0]);
-			  if (d[1] == "M" ) d[1]="70"
-			  else d[1] == +d[1];
+			  d[1] == +d[1];
             });
 			
 			xScale.domain(d3.extent(dataset, function(d) { return d[0]; }));
