@@ -5,15 +5,15 @@
 		<title>ACIS examples, Average Annual Max Temp</title>
 		<script type="text/javascript" src="http://d3js.org/d3.v3.js"></script>
 		<style type="text/css">
-			body {
-				font: 14px sans-serif;
-			}	
-			.axis path,
-    .axis line {
-      fill: none;
-      stroke: blue;
-      shape-rendering: crispEdges;
-    }
+		body {
+			font: 14px sans-serif;
+		}	
+		.axis path,
+		.axis line {
+			fill: none;
+			stroke: black;
+			shape-rendering: crispEdges;
+		}
 
 		</style>
 	</head>
@@ -21,11 +21,18 @@
 		<script src="../../build/build.js"></script>
 		<script type="text/javascript">
 			var request = require('superagent');
-				
+			var holdingArray;
+			
 			var params = {
 			  "sid":"304174",
                 "sdate":"por","edate":"por",
                 "elems":[{"name":"maxt","interval":"yly","duration":"yly","reduce":"mean","maxmissing":15}]
+              };
+			  
+			var paramsmin = {
+			  "sid":"304174",
+                "sdate":"por","edate":"por",
+                "elems":[{"name":"mint","interval":"yly","duration":"yly","reduce":"mean","maxmissing":15}]
               };
 			
 			request
@@ -40,8 +47,8 @@
 									myArray.splice(i, 1);
 								}
 							}
-							
-							build_plot(myArray)
+							holdingArray = myArray;
+							//build_plot(myArray)
 						}
 					else console.log('invalid request %s', res.body.error)
 					} 
@@ -49,6 +56,31 @@
 						console.log('failed request %s',res.status)
 					}
 				});
+				request
+				.post('http://data.rcc-acis.org/StnData', paramsmin)
+				.end(function(res){
+					if (res.status == 200) {
+						if (res.body.error === undefined) {
+							var myArray = res.body.data;
+							
+							for(var i = myArray.length - 1; i >= 0; i--) {
+								if(myArray[i][1] == 'M') {
+									myArray.splice(i, 1);
+								}
+							}
+							newArray = holdingArray.concat(myArray);
+							build_plot(newArray)
+						}
+					else console.log('invalid request %s', res.body.error)
+					} 
+					else {
+						console.log('failed request %s',res.status)
+					}
+				});
+				
+				
+				
+			
 				
 			var build_plot = function (dataset) {	
 			var margin = {top: 20, right: 20, bottom: 30, left: 50},
@@ -90,6 +122,8 @@
 			xScale.domain(d3.extent(dataset, function(d) { return d[0]; }));
 			yScale.domain(d3.extent(dataset, function(d) { return d[1]; }));
 			
+			
+			
 			svg.selectAll("circle")
 			   .data(dataset)
 			   .enter()
@@ -100,7 +134,14 @@
 			   .attr("cy", function(d) {
 			   		return yScale(d[1]);
 			   })
-			   .attr("r", 3);
+			   .attr("r", 3)
+			   //.style("fill","blue")
+			   .style("fill", function(d){
+					if (dataset.indexOf(d) >= (dataset.length / 2))
+						return "blue"
+					else
+						return "red"
+			   });
 
 			svg.append("g")
                 .attr("class", "x axis")
@@ -115,7 +156,7 @@
                 .attr("y", 6)
                 .attr("dy", ".71em")
                 .style("text-anchor", "end")
-                .text("Annual Max Avg Temp");
+                .text("Annual Avg Temp");
 			}
 		</script>
 	</body>
