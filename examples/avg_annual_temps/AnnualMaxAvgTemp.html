@@ -20,6 +20,16 @@
 	<body>
 		<script src="../../build/build.js"></script>
 		<script type="text/javascript">
+			var tooltip = d3.select("body")
+				.append("div")
+				.style("position", "absolute")
+				.style("z-index", "10")
+				.style("visibility", "hidden")
+				.style("padding", "2px")
+				.style("background", "lightgray")
+				.style("border-radius", "8px")  
+				.text("a simple tooltip");
+			
 			var request = require('superagent');
 			var holdingArray;
 			
@@ -78,13 +88,9 @@
 					}
 				});
 				
-				
-				
-			
-				
 			var build_plot = function (dataset) {	
 			var margin = {top: 20, right: 20, bottom: 30, left: 50},
-                width = 600 - margin.left - margin.right,
+                width = 800 - margin.left - margin.right,
                 height = 300 - margin.top - margin.bottom;
 			//Create scale functions
 			var parseDate = d3.time.format("%Y").parse;
@@ -105,7 +111,18 @@
             var yAxis = d3.svg.axis()
                 .scale(yScale)
                 .orient("left");
-
+				
+			// this function will be run every time we mouse over an element
+			var myMouseoverFunction = function() {
+				// remember how d3 goes through EACH of the selected elements and uses your function for EACH element?
+				// well, every time the function is used for an element, it has a "secret" variable called 'this' which holds that element.
+				// we use 'this' to increment the current element's radius by 10
+				var circle = d3.select(this);
+				circle.transition().duration(200)
+					//.attr("r", circle.attr("r") * 1 + 10 );
+					.style("fill", "purple");
+					
+			}	
 			//Create SVG element
 			var svg = d3.select("body")
 				.append("svg")
@@ -121,9 +138,7 @@
 			
 			xScale.domain(d3.extent(dataset, function(d) { return d[0]; }));
 			yScale.domain(d3.extent(dataset, function(d) { return d[1]; }));
-			
-			
-			
+						
 			svg.selectAll("circle")
 			   .data(dataset)
 			   .enter()
@@ -134,21 +149,26 @@
 			   .attr("cy", function(d) {
 			   		return yScale(d[1]);
 			   })
-			   .attr("r", 3)
+			   .attr("r", 3.5)
 			   //.style("fill","blue")
 			   .style("fill", function(d){
 					if (dataset.indexOf(d) >= (dataset.length / 2))
-						return "blue"
+						return "mediumblue"
 					else
-						return "red"
-			   });
+						return "red"})
+				//.on("mouseover", myMouseoverFunction);
+				.on("mouseover", function(d){
+					tooltip.text(d[0].getFullYear() + "  " + d[1].toString())
+					return tooltip.style("visibility", "visible");})
+				.on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+				.on("mouseout", function(){return tooltip.style("visibility", "hidden");});
 
 			svg.append("g")
                 .attr("class", "x axis")
                 .attr("transform", "translate(0," + height + ")")
                 .call(xAxis)
 				.append("text")
-				.attr("dx", 250)
+				.attr("dx", 350)
 				.attr("dy", 30)
 				.text("Year");
  
