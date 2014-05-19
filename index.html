@@ -30,190 +30,20 @@
       <section>
         <p>&lt;!DOCTYPE html&gt;
 
-    </p>
-        ACIS examples, Average Annual Max Temp
-        body {
-            font: 14px sans-serif;
-        }&lt;br&gt;
-        .axis path,
-        .axis line {
-            fill: none;
-            stroke: black;
-            shape-rendering: crispEdges;
-        }&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;    &amp;lt;/style&amp;gt;
-&amp;lt;/head&amp;gt;
-&amp;lt;body&amp;gt;
-    &amp;lt;script src=&amp;quot;../../build/build.js&amp;quot;&amp;gt;&amp;lt;/script&amp;gt;
-    &amp;lt;script type=&amp;quot;text/javascript&amp;quot;&amp;gt;
-        var tooltip = d3.select(&amp;quot;body&amp;quot;)
-            .append(&amp;quot;div&amp;quot;)
-            .style(&amp;quot;position&amp;quot;, &amp;quot;absolute&amp;quot;)
-            .style(&amp;quot;z-index&amp;quot;, &amp;quot;10&amp;quot;)
-            .style(&amp;quot;visibility&amp;quot;, &amp;quot;hidden&amp;quot;)
-            .style(&amp;quot;padding&amp;quot;, &amp;quot;2px&amp;quot;)
-            .style(&amp;quot;background&amp;quot;, &amp;quot;lightgray&amp;quot;)
-            .style(&amp;quot;border-radius&amp;quot;, &amp;quot;8px&amp;quot;)  
-            .text(&amp;quot;a simple tooltip&amp;quot;);
-
-        var request = require(&amp;#39;superagent&amp;#39;);
-        var holdingArray;
-
-        var params = {
-          &amp;quot;sid&amp;quot;:&amp;quot;304174&amp;quot;,
-            &amp;quot;sdate&amp;quot;:&amp;quot;por&amp;quot;,&amp;quot;edate&amp;quot;:&amp;quot;por&amp;quot;,
-            &amp;quot;elems&amp;quot;:[{&amp;quot;name&amp;quot;:&amp;quot;maxt&amp;quot;,&amp;quot;interval&amp;quot;:&amp;quot;yly&amp;quot;,&amp;quot;duration&amp;quot;:&amp;quot;yly&amp;quot;,&amp;quot;reduce&amp;quot;:&amp;quot;mean&amp;quot;,&amp;quot;maxmissing&amp;quot;:15}]
-          };
-
-        var paramsmin = {
-          &amp;quot;sid&amp;quot;:&amp;quot;304174&amp;quot;,
-            &amp;quot;sdate&amp;quot;:&amp;quot;por&amp;quot;,&amp;quot;edate&amp;quot;:&amp;quot;por&amp;quot;,
-            &amp;quot;elems&amp;quot;:[{&amp;quot;name&amp;quot;:&amp;quot;mint&amp;quot;,&amp;quot;interval&amp;quot;:&amp;quot;yly&amp;quot;,&amp;quot;duration&amp;quot;:&amp;quot;yly&amp;quot;,&amp;quot;reduce&amp;quot;:&amp;quot;mean&amp;quot;,&amp;quot;maxmissing&amp;quot;:15}]
-          };
-
-        request
-            .post(&amp;#39;http://data.rcc-acis.org/StnData&amp;#39;, params)
-            .end(function(res){
-                if (res.status == 200) {
-                    if (res.body.error === undefined) {
-                        var myArray = res.body.data;
-
-                        for(var i = myArray.length - 1; i &amp;gt;= 0; i--) {
-                            if(myArray[i][1] == &amp;#39;M&amp;#39;) {
-                                myArray.splice(i, 1);
-                            }
-                        }
-                        holdingArray = myArray;
-                        //build_plot(myArray)
-                    }
-                else console.log(&amp;#39;invalid request %s&amp;#39;, res.body.error)
-                } 
-                else {
-                    console.log(&amp;#39;failed request %s&amp;#39;,res.status)
-                }
-            });
-            request
-            .post(&amp;#39;http://data.rcc-acis.org/StnData&amp;#39;, paramsmin)
-            .end(function(res){
-                if (res.status == 200) {
-                    if (res.body.error === undefined) {
-                        var myArray = res.body.data;
-
-                        for(var i = myArray.length - 1; i &amp;gt;= 0; i--) {
-                            if(myArray[i][1] == &amp;#39;M&amp;#39;) {
-                                myArray.splice(i, 1);
-                            }
-                        }
-                        newArray = holdingArray.concat(myArray);
-                        build_plot(newArray)
-                    }
-                else console.log(&amp;#39;invalid request %s&amp;#39;, res.body.error)
-                } 
-                else {
-                    console.log(&amp;#39;failed request %s&amp;#39;,res.status)
-                }
-            });
-
-        var build_plot = function (dataset) {   
-        var margin = {top: 20, right: 20, bottom: 30, left: 50},
-            width = 800 - margin.left - margin.right,
-            height = 300 - margin.top - margin.bottom;
-        //Create scale functions
-        var parseDate = d3.time.format(&amp;quot;%Y&amp;quot;).parse;
-
-        var xScale = d3.time.scale()
-                    .range([0, width]);
-
-        var yScale = d3.scale.linear()
-                    .range([height, 0]);
-
-                    //Define X axis
-        var xAxis = d3.svg.axis()
-            .scale(xScale)
-            .ticks(5)
-            .orient(&amp;quot;bottom&amp;quot;);
-
-        //Define Y axis
-        var yAxis = d3.svg.axis()
-            .scale(yScale)
-            .orient(&amp;quot;left&amp;quot;);
-
-        // this function will be run every time we mouse over an element
-        var myMouseoverFunction = function() {
-            // remember how d3 goes through EACH of the selected elements and uses your function for EACH element?
-            // well, every time the function is used for an element, it has a &amp;quot;secret&amp;quot; variable called &amp;#39;this&amp;#39; which holds that element.
-            // we use &amp;#39;this&amp;#39; to increment the current element&amp;#39;s radius by 10
-            var circle = d3.select(this);
-            circle.transition().duration(200)
-                //.attr(&amp;quot;r&amp;quot;, circle.attr(&amp;quot;r&amp;quot;) * 1 + 10 );
-                .style(&amp;quot;fill&amp;quot;, &amp;quot;purple&amp;quot;);
-
-        }   
-        //Create SVG element
-        var svg = d3.select(&amp;quot;body&amp;quot;)
-            .append(&amp;quot;svg&amp;quot;)
-                .attr(&amp;quot;width&amp;quot;, width + margin.left + margin.right)
-                .attr(&amp;quot;height&amp;quot;, height + margin.top + margin.bottom)
-            .append(&amp;quot;g&amp;quot;)
-                .attr(&amp;quot;transform&amp;quot;, &amp;quot;translate(&amp;quot; + margin.left + &amp;quot;,&amp;quot; + margin.top + &amp;quot;)&amp;quot;);
-
-        dataset.forEach(function(d) {
-          d[0] = parseDate(d[0]);
-          d[1] == +d[1];
-        });
-
-        xScale.domain(d3.extent(dataset, function(d) { return d[0]; }));
-        yScale.domain(d3.extent(dataset, function(d) { return d[1]; }));
-
-        svg.selectAll(&amp;quot;circle&amp;quot;)
-           .data(dataset)
-           .enter()
-           .append(&amp;quot;circle&amp;quot;)
-           .attr(&amp;quot;cx&amp;quot;, function(d) {
-                return xScale(d[0]);
-           })
-           .attr(&amp;quot;cy&amp;quot;, function(d) {
-                return yScale(d[1]);
-           })
-           .attr(&amp;quot;r&amp;quot;, 3.5)
-           //.style(&amp;quot;fill&amp;quot;,&amp;quot;blue&amp;quot;)
-           .style(&amp;quot;fill&amp;quot;, function(d){
-                if (dataset.indexOf(d) &amp;gt;= (dataset.length / 2))
-                    return &amp;quot;mediumblue&amp;quot;
-                else
-                    return &amp;quot;red&amp;quot;})
-            //.on(&amp;quot;mouseover&amp;quot;, myMouseoverFunction);
-            .on(&amp;quot;mouseover&amp;quot;, function(d){
-                tooltip.text(d[0].getFullYear() + &amp;quot;  &amp;quot; + d[1].toString())
-                return tooltip.style(&amp;quot;visibility&amp;quot;, &amp;quot;visible&amp;quot;);})
-            .on(&amp;quot;mousemove&amp;quot;, function(){return tooltip.style(&amp;quot;top&amp;quot;, (event.pageY-10)+&amp;quot;px&amp;quot;).style(&amp;quot;left&amp;quot;,(event.pageX+10)+&amp;quot;px&amp;quot;);})
-            .on(&amp;quot;mouseout&amp;quot;, function(){return tooltip.style(&amp;quot;visibility&amp;quot;, &amp;quot;hidden&amp;quot;);});
-
-        svg.append(&amp;quot;g&amp;quot;)
-            .attr(&amp;quot;class&amp;quot;, &amp;quot;x axis&amp;quot;)
-            .attr(&amp;quot;transform&amp;quot;, &amp;quot;translate(0,&amp;quot; + height + &amp;quot;)&amp;quot;)
-            .call(xAxis)
-            .append(&amp;quot;text&amp;quot;)
-            .attr(&amp;quot;dx&amp;quot;, 350)
-            .attr(&amp;quot;dy&amp;quot;, 30)
-            .text(&amp;quot;Year&amp;quot;);
-
-        svg.append(&amp;quot;g&amp;quot;)
-            .attr(&amp;quot;class&amp;quot;, &amp;quot;y axis&amp;quot;)
-            .call(yAxis)
-            .append(&amp;quot;text&amp;quot;)
-            .attr(&amp;quot;transform&amp;quot;, &amp;quot;rotate(-90)&amp;quot;)
-            .attr(&amp;quot;y&amp;quot;, 6)
-            .attr(&amp;quot;dy&amp;quot;, -40)
-            .style(&amp;quot;text-anchor&amp;quot;, &amp;quot;end&amp;quot;)
-            .text(&amp;quot;Annual Avg Min and Max Temperature&amp;quot;);
-        }
-    &amp;lt;/script&amp;gt;
-&amp;lt;/body&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;/html&gt;&lt;/p&gt;
+</p>
+  ACIS examples<h1>
+<a name="some-simple-examples-of-using-acis-webservices-from-components" class="anchor" href="#some-simple-examples-of-using-acis-webservices-from-components"><span class="octicon octicon-link"></span></a>Some simple examples of using ACIS WebServices from Components</h1>
+  <ul>
+<li><a href="examples/avg_annual_temps/AnnualMaxAvgTemp.html">
+      Min and Max average temps for Ithaca with mouse over data point.
+    </a></li>
+    <li><a href="examples/fixed_stn_table/index.html">
+      A fixed list of stations and elements generating a table of values.
+    </a></li>
+    <li><a href="examples/geo_list/index.html">
+      Several components working together to select a geo-region and generate a D3 precip plot
+    </a></li>
+  </ul>
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/lwalle">lwalle</a></p>
