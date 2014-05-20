@@ -35,6 +35,7 @@ $ gulp
 
 Open one of the examples:
 
+* `examples/avg_annual_temps/index.html`
 * `examples/fixed_stn_table/index.html`
 * `examples/geo_list/index.html`
 
