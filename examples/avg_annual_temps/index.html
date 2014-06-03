@@ -31,19 +31,17 @@
 				.text("a simple tooltip");
 			
 			var request = require('superagent');
-			var holdingArray;
+			
+
 			
 			var params = {
 			  "sid":"304174",
                 "sdate":"por","edate":"por",
-                "elems":[{"name":"maxt","interval":"yly","duration":"yly","reduce":"mean","maxmissing":15}]
+                "elems":[{"name":"maxt","interval":"yly","duration":"yly","reduce":"mean","maxmissing":15},
+					{"name":"mint","interval":"yly","duration":"yly","reduce":"mean","maxmissing":15}]
               };
 			  
-			var paramsmin = {
-			  "sid":"304174",
-                "sdate":"por","edate":"por",
-                "elems":[{"name":"mint","interval":"yly","duration":"yly","reduce":"mean","maxmissing":15}]
-              };
+			var numofelems = 2;
 			
 			request
 				.post('http://data.rcc-acis.org/StnData', params)
@@ -57,29 +55,19 @@
 									myArray.splice(i, 1);
 								}
 							}
-							holdingArray = myArray;
-							//build_plot(myArray)
-						}
-					else console.log('invalid request %s', res.body.error)
-					} 
-					else {
-						console.log('failed request %s',res.status)
-					}
-				});
-				request
-				.post('http://data.rcc-acis.org/StnData', paramsmin)
-				.end(function(res){
-					if (res.status == 200) {
-						if (res.body.error === undefined) {
-							var myArray = res.body.data;
-							
-							for(var i = myArray.length - 1; i >= 0; i--) {
-								if(myArray[i][1] == 'M') {
-									myArray.splice(i, 1);
+							var holdingArray = new Array(myArray.length * numofelems - 1);
+							for (var j = 0; j < (myArray.length * numofelems); j++){
+								holdingArray[j] = new Array();
 								}
+							
+							//holdingArray = myArray;
+							for(var index = 0; index < myArray.length; index++){
+								holdingArray[index].push(myArray[index][0], myArray[index][1])
+								holdingArray[index + myArray.length].push(myArray[index][0],myArray[index][2]);
+
 							}
-							newArray = holdingArray.concat(myArray);
-							build_plot(newArray)
+												
+							build_plot(holdingArray)
 						}
 					else console.log('invalid request %s', res.body.error)
 					} 
@@ -87,6 +75,7 @@
 						console.log('failed request %s',res.status)
 					}
 				});
+				
 				
 			var build_plot = function (dataset) {	
 			var margin = {top: 20, right: 20, bottom: 30, left: 50},
@@ -112,6 +101,7 @@
                 .scale(yScale)
                 .orient("left");
 				
+
 			// this function will be run every time we mouse over an element
 			var myMouseoverFunction = function() {
 				// remember how d3 goes through EACH of the selected elements and uses your function for EACH element?
@@ -138,7 +128,8 @@
 			
 			xScale.domain(d3.extent(dataset, function(d) { return d[0]; }));
 			yScale.domain(d3.extent(dataset, function(d) { return d[1]; }));
-						
+			
+									
 			svg.selectAll("circle")
 			   .data(dataset)
 			   .enter()
@@ -150,18 +141,24 @@
 			   		return yScale(d[1]);
 			   })
 			   .attr("r", 3.5)
-			   //.style("fill","blue")
+			   //.style("fill","red")
+			   
+			   
 			   .style("fill", function(d){
-					if (dataset.indexOf(d) >= (dataset.length / 2))
+					if (dataset.indexOf(d) >= (dataset.length / numofelems))
 						return "mediumblue"
 					else
 						return "red"})
 				//.on("mouseover", myMouseoverFunction);
+				
+			   
 				.on("mouseover", function(d){
-					tooltip.text(d[0].getFullYear() + "  " + d[1].toString())
+					tooltip.text("Year: " + d[0].getFullYear() + " Temp: " + d[1].toString() )
 					return tooltip.style("visibility", "visible");})
 				.on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
 				.on("mouseout", function(){return tooltip.style("visibility", "hidden");});
+				
+			
 
 			svg.append("g")
                 .attr("class", "x axis")
