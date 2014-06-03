@@ -101,6 +101,7 @@ Vue.component('data-plot',{
           .attr("cx",function(d) { return x(d[0]); })
           .attr("cy",function(d) { return y(d[1]); })
           .attr("fill","darkblue")
+		  .attr("opacity",0)
           .attr("r","3px")
 
         svg.append("path")
