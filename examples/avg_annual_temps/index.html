@@ -61,10 +61,11 @@
 								}
 							
 							//holdingArray = myArray;
-							for(var index = 0; index < myArray.length; index++){
-								holdingArray[index].push(myArray[index][0], myArray[index][1])
-								holdingArray[index + myArray.length].push(myArray[index][0],myArray[index][2]);
-
+							for (var k = 1; k <= numofelems; k++){
+								for(var index = 0; index < myArray.length; index++){
+									var myindex = index + (myArray.length * (k-1))
+									holdingArray[myindex].push(myArray[index][0], myArray[index][k]);
+								}
 							}
 												
 							build_plot(holdingArray)
